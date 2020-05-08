@@ -1,8 +1,13 @@
 //Entry -> output
 const path = require('path');
+const ExtractTextPlugin = require('mini-css-extract-plugin');
+
+module.exports = (env) => {
+const isProduction = env === 'production';
+const CSSExtract = new ExtractTextPlugin({filename:'styles.css'});
 
 
-module.exports ={
+ return {
     entry: './src/app.js',
     output:{
         path: path.join(__dirname, 'public'),
@@ -16,15 +21,32 @@ module.exports ={
         },{
             test: /\.s?css$/,
             use: [
-                'style-loader',
-                'css-loader',
-                'sass-loader'
+                {
+                    loader: ExtractTextPlugin.loader
+                },
+                {
+                    loader: 'css-loader',
+                    options: {
+                        sourceMap: true
+                    }
+                },
+                {
+                    loader: 'sass-loader',
+                    options: {
+                        sourceMap: true
+                    }
+                }
             ]
         }]
     },
-    devtool: 'cheap-module-eval-source-map',
+    plugins: [
+        CSSExtract
+    ],
+    devtool: isProduction ? 'source-map' : 'inline-source-map',
     devServer: {
         contentBase: path.join(__dirname, 'public'),
         historyApiFallback:true
     }
+}
 };
+
