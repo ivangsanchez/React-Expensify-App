@@ -8,6 +8,8 @@ export const addExpense = (expense) => ({
     expense
 });
 
+////////////////// START_ADD_EXPENSES ////////////////
+///////FROM FIREBASE
 export const startAddExpense = (expenseData = {}) => {
     return (dispatch) => {
         const {
@@ -33,6 +35,16 @@ export const startAddExpense = (expenseData = {}) => {
     id
 });
 
+////////////////// START_REMOVE_EXPENSES ////////////////
+///////FROM FIREBASE
+export const startRemoveExpense = ({ id } = {}) => {
+    return (dispatch) => {
+        return database.ref(`expenses/${id}`).remove().then(() => {
+            dispatch(removeExpense({id}));
+        });
+    };
+};
+
 //////////////////EDIT_EXPENSE //////////////////
 export const editExpense = (id, updates) => ({
     type: 'EDIT_EXPENSE',
@@ -47,6 +59,7 @@ export const setExpenses = (expenses) => ({
 });
 
 ////////////////// START_SET_EXPENSES ////////////////
+///////FROM FIREBASE
 export const startSetExpenses = () => {
     return (dispatch) =>{
         return database.ref('expenses').once('value').then((snapshot) => {
