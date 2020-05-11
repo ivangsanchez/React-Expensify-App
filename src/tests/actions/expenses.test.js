@@ -1,4 +1,10 @@
-import { addExpense, editExpense, removeExpense } from '../../actions/expenses';
+import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+import {startAddExpense, addExpense, editExpense, removeExpense } from '../../actions/expenses';
+import expenses from '../fixtures/expenses';
+import database from '../../firebase/firebase';
+
+const createMockStore = configureMockStore([thunk])
 
 test ('Should setup remove expense action object', () => {
     const action = removeExpense({id: '123abc'});
@@ -20,24 +26,65 @@ test ('Should edit expense action object', () => {
 });
 
 test('Should setup add expense action object with PROVIDED values', () => {
-    const expenseData = {
-        descriptions: 'Rent',
-        amount: 12323,
-        createdAt:1000,
-        note: 'This was last months'
-    };
-
-    const action = addExpense(expenseData);
+    const action = addExpense(expenses[2]);
     expect(action).toEqual({
         type: 'ADD_EXPENSE',
-        expense: {
-            ...expenseData,
-            id: expect.any(String)
-        }
-    })
+        expense: expenses[2]
+    });
 });
 
-test('Should setup add expense action object with DEFAULT values', () => {
+//Testing async functions, pass done as argument
+test('should add expense to database and store', (done) => {
+    const store = createMockStore({});
+    const expenseData = {
+        descriptions: 'DOG',
+        amount: 3000,
+        note: 'This is my dog',
+        createdAt: 1000
+    }
+    store.dispatch(startAddExpense(expenseData)).then(() => {
+        const actions= store.getActions();
+        expect(actions[0]).toEqual({
+            type: 'ADD_EXPENSE',
+            expense: {
+                id: expect.any(String),
+                ...expenseData
+            }
+        });
+
+        return database.ref(`expenses/${actions[0].expense.id}`).once('value');
+    }).then((snapshot)=>{
+        expect(snapshot.val()).toEqual(expenseData);
+        done(); //wait to jass to asyncronous function
+    });
+});
+
+test('should add expense with defaults to database and store', (done) => {
+    const store = createMockStore({});
+    const expenseDefaults = {
+        descriptions: '',
+        amount: 0,
+        note: '',
+        createdAt: 0
+    }
+    store.dispatch(startAddExpense({})).then(() => {
+        const actions= store.getActions();
+        expect(actions[0]).toEqual({
+            type: 'ADD_EXPENSE',
+            expense: {
+                id: expect.any(String),
+                ...expenseDefaults
+            }
+        });
+
+        return database.ref(`expenses/${actions[0].expense.id}`).once('value');
+    }).then((snapshot)=>{
+        expect(snapshot.val()).toEqual(expenseDefaults);
+        done(); //wait to jass to asyncronous function
+    });
+});
+
+/* test('Should setup add expense action object with DEFAULT values', () => {
     const expenseData = {
         descriptions: '',
         amount:0,
@@ -52,4 +99,4 @@ test('Should setup add expense action object with DEFAULT values', () => {
             id: expect.any(String)
         }
     })
-});
+}); */
