@@ -52,6 +52,16 @@ export const editExpense = (id, updates) => ({
     updates
 });
 
+////////////////// START_EDIT_EXPENSES ////////////////
+///////FROM FIREBASE
+export const startEditExpense = (id, updates) => {
+    return (dispatch) => {
+        return database.ref(`expenses/${id}`).update(updates).then(() => {
+            dispatch(editExpense(id, updates));
+        });
+    };
+};
+
 ////////////////// SET_EXPENSES ////////////////
 export const setExpenses = (expenses) => ({
     type: 'SET_EXPENSES',
